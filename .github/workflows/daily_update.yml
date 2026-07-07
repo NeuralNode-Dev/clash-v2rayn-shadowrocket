@@ -2,7 +2,7 @@ name: Auto Update VPN Nodes
 
 on:
   schedule:
-    # 北京时间每天早上 8 点运行 (UTC 时间 0 点)
+    # 北京时间每天早上 9 点运行 (UTC 时间 1 点)
     - cron: '0 1 * * *'
   workflow_dispatch: # 允许手动点击按钮运行
 
@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-latest
     
     permissions:
-      contents: write  # 赋予写权限，以便提交修改
+      contents: write 
 
     steps:
       - name: Checkout code
@@ -30,15 +30,21 @@ jobs:
         run: |
           python .github/scripts/update_links.py
 
+      - name: Force Update Timestamp for SEO
+        run: |
+          sed -i '//d' README.md
+          
+          CURRENT_TIME=$(TZ="Asia/Shanghai" date +"%Y-%m-%d %H:%M:%S")
+          echo "" >> README.md
+
       - name: Commit and Push changes
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
           
-          # 检查是否有文件变动
           if [ -n "$(git status --porcelain)" ]; then
             git add README.md
-            git commit -m "🚀 Auto Update: Verified VPN nodes list [$(date +'%Y-%m-%d')]"
+            git commit -m "🚀 Auto Update: Verified VPN nodes list [$(TZ="Asia/Shanghai" date +'%Y-%m-%d')]"
             git push
             echo "Changes pushed successfully."
           else
